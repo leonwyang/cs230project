@@ -13,6 +13,6 @@ SRGAN-tensorflow/experiment_SRGAN_MSE/
 SRGAN-tensorflow/experiment_SRGAN_MSE/log
 SRGAN-tensorflow/SRGAN_pre-trained/
 SRGAN-tensorflow/vgg19/
-SRGAN-tensorflow/result/
+SRGAN-tensorflow/result/log
 .idea/
 SRGAN-tensorflow/data/

@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --mode train \
     --is_training True \
     --task SRResnet \
-    --batch_size 2 \
+    --batch_size 16 \
     --flip True \
     --random_crop True \
     --crop_size 24 \

@@ -210,7 +210,7 @@ elif FLAGS.mode == 'inference':
 
         max_iter = len(inference_data.inputs)
         print('Evaluation starts!!')
-        for i in range(max_iter):
+        for i in range(4):
             input_im = np.array([inference_data.inputs[i]]).astype(np.float32)
             path_lr = inference_data.paths_LR[i]
             results = sess.run(save_fetch, feed_dict={inputs_raw: input_im, path_LR: path_lr})
