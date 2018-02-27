@@ -25,5 +25,6 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --queue_thread 10 \
     --vgg_scaling 0.0061 \
     --pre_trained_model True \
-    --checkpoint ./experiment_SRResnet/model-100
+    --checkpoint ./experiment_SRResnet/model-180000
+    --save_freq 20000
 

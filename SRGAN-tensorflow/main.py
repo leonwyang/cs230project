@@ -54,7 +54,7 @@ Flags.DEFINE_integer('max_epoch', None, 'The max epoch for the training')
 Flags.DEFINE_integer('max_iter', 1000000, 'The max iteration of the training')
 Flags.DEFINE_integer('display_freq', 20, 'The diplay frequency of the training process')
 Flags.DEFINE_integer('summary_freq', 100, 'The frequency of writing summary')
-Flags.DEFINE_integer('save_freq', 10000, 'The frequency of saving images')
+Flags.DEFINE_integer('save_freq', 20000, 'The frequency of saving images')
 
 
 FLAGS = Flags.FLAGS
@@ -84,8 +84,8 @@ if FLAGS.mode == 'test':
     if FLAGS.flip == True:
         FLAGS.flip = False
 
-    if FLAGS.crop_size is not None:
-        FLAGS.crop_size = None
+#     if FLAGS.crop_size is not None:
+#         FLAGS.crop_size = None
 
     # Declare the test data reader
     test_data = test_data_loader(FLAGS)
