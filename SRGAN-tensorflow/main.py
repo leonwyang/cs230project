@@ -44,6 +44,7 @@ Flags.DEFINE_string('perceptual_mode', 'VGG54', 'The type of feature used in per
 Flags.DEFINE_float('EPS', 1e-12, 'The eps added to prevent nan')
 Flags.DEFINE_float('ratio', 0.001, 'The ratio between content loss and adversarial loss')
 Flags.DEFINE_float('vgg_scaling', 0.0061, 'The scaling factor for the perceptual loss if using vgg perceptual loss')
+Flags.DEFINE_float('combined_mse_scaling', 1.0, 'The scaling factor for MSE loss if using combined perceptual loss')
 # The training parameters
 Flags.DEFINE_float('learning_rate', 0.0001, 'The learning rate for the network')
 Flags.DEFINE_integer('decay_step', 500000, 'The steps needed to decay the learning rate')

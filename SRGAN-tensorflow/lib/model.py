@@ -389,6 +389,15 @@ def SRGAN(inputs, targets, FLAGS):
         extracted_feature_gen = gen_output
         extracted_feature_target = targets
 
+    # Use MSE-VGG combined loss
+    elif FLAGS.perceptual_mode.startswith('MSE_VGG'):
+        with tf.name_scope('vgg19_1') as scope:
+            extracted_feature_gen = VGG19_slim(gen_output, FLAGS.perceptual_mode[4:], reuse=False, scope=scope)
+        with tf.name_scope('vgg19_2') as scope:
+            extracted_feature_target = VGG19_slim(targets, FLAGS.perceptual_mode[4:], reuse=True, scope=scope)
+        extracted_feature_gen_mse = gen_output
+        extracted_feature_target_mse = targets
+
     else:
         raise NotImplementedError('Unknown perceptual type!!')
 
@@ -402,6 +411,10 @@ def SRGAN(inputs, targets, FLAGS):
                 content_loss = tf.reduce_mean(tf.reduce_sum(tf.square(diff), axis=[3]))
             else:
                 content_loss = FLAGS.vgg_scaling*tf.reduce_mean(tf.reduce_sum(tf.square(diff), axis=[3]))
+
+            if FLAGS.perceptual_mode.startswith('MSE_VGG'):
+                diff_mse = extracted_feature_gen_mse - extracted_feature_target_mse
+                content_loss = content_loss + FLAGS.combined_mse_scaling * tf.reduce_mean(tf.reduce_sum(tf.square(diff_mse), axis=[3]))
 
         with tf.variable_scope('adversarial_loss'):
             adversarial_loss = tf.reduce_mean(-tf.log(discrim_fake_output + FLAGS.EPS))
@@ -484,6 +497,14 @@ def SRResnet(inputs, targets, FLAGS):
         extracted_feature_gen = gen_output
         extracted_feature_target = targets
 
+    elif FLAGS.perceptual_mode.startswith('MSE_VGG'):
+        with tf.name_scope('vgg19_1') as scope:
+            extracted_feature_gen = VGG19_slim(gen_output, FLAGS.perceptual_mode[4:], reuse=False, scope=scope)
+        with tf.name_scope('vgg19_2') as scope:
+            extracted_feature_target = VGG19_slim(targets, FLAGS.perceptual_mode[4:], reuse=True, scope=scope)
+        extracted_feature_gen_mse = gen_output
+        extracted_feature_target_mse = targets
+
     else:
         raise NotImplementedError('Unknown perceptual type')
 
@@ -498,6 +519,10 @@ def SRResnet(inputs, targets, FLAGS):
                 content_loss = tf.reduce_mean(tf.reduce_sum(tf.square(diff), axis=[3]))
             else:
                 content_loss = FLAGS.vgg_scaling * tf.reduce_mean(tf.reduce_sum(tf.square(diff), axis=[3]))
+
+            if FLAGS.perceptual_mode.startswith('MSE_VGG'):
+                diff_mse = extracted_feature_gen_mse - extracted_feature_target_mse
+                content_loss = content_loss + FLAGS.combined_mse_scaling * tf.reduce_mean(tf.reduce_sum(tf.square(diff_mse), axis=[3]))
 
         gen_loss = content_loss
 
