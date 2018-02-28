@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python main.py \
-    --output_dir ./experiment_SRResnet/ \
-    --summary_dir ./experiment_SRResnet/log/ \
+    --output_dir ./experiment_SRResnet_VGG54/ \
+    --summary_dir ./experiment_SRResnet_VGG54/log/ \
     --mode train \
     --is_training True \
     --task SRResnet \
@@ -14,7 +14,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --num_resblock 16 \
     --name_queue_capacity 4096 \
     --image_queue_capacity 4096 \
-    --perceptual_mode MSE \
+    --perceptual_mode VGG54 \
     --queue_thread 4 \
     --ratio 0.001 \
     --learning_rate 0.0001 \

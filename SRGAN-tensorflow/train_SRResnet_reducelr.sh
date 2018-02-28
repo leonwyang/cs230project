@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python main.py \
-    --output_dir ./experiment_SRResnet/ \
-    --summary_dir ./experiment_SRResnet/log/ \
+    --output_dir ./experiment_SRResnet_reducelr/ \
+    --summary_dir ./experiment_SRResnet_reducelr/log/ \
     --mode train \
     --is_training True \
     --task SRResnet \
@@ -17,11 +17,15 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --perceptual_mode MSE \
     --queue_thread 4 \
     --ratio 0.001 \
-    --learning_rate 0.0001 \
+    --learning_rate 0.00001 \
     --decay_step 100000 \
     --decay_rate 0.1 \
     --stair False \
     --beta 0.9 \
     --max_iter 1000000 \
-    --save_freq 20000
+    --save_freq 20000 \
+    --pre_trained_model True \
+    --pre_trained_model_type SRResnet \
+    --checkpoint ./experiment_SRResnet/model-180000
+
 

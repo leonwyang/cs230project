@@ -5,15 +5,9 @@
 *.meta
 model-*
 *.tar
-SRGAN-tensorflow/experiment_SRResnet/
-SRGAN-tensorflow/experiment_SRResnet/log/
-SRGAN-tensorflow/experiment_SRGAN_VGG54/
-SRGAN-tensorflow/experiment_SRGAN_VGG54/log
-SRGAN-tensorflow/experiment_SRGAN_MSE/
-SRGAN-tensorflow/experiment_SRGAN_MSE/log
 SRGAN-tensorflow/SRGAN_pre-trained/
 SRGAN-tensorflow/vgg19/
-SRGAN-tensorflow/result/log
 .idea/
 SRGAN-tensorflow/data/
 SRGAN-tensorflow/result/
+SRGAN-tensorflow/experiment*
