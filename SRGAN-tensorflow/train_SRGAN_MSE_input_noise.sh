@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python main.py \
-    --output_dir ./experiment_SRGAN_MSE/ \
-    --summary_dir ./experiment_SRGAN_MSE/log/ \
+    --output_dir ./experiment_SRGAN_MSE_input_noise/ \
+    --summary_dir ./experiment_SRGAN_MSE_input_noise/log/ \
     --mode train \
     --is_training True \
     --task SRGAN \

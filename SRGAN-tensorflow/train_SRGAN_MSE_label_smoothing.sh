@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python main.py \
-    --output_dir ./experiment_SRGAN_MSE/ \
-    --summary_dir ./experiment_SRGAN_MSE/log/ \
+    --output_dir ./experiment_SRGAN_MSE_label_smoothing/ \
+    --summary_dir ./experiment_SRGAN_MSE_label_smoothing/log/ \
     --mode train \
     --is_training True \
     --task SRGAN \
