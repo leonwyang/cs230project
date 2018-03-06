@@ -106,6 +106,12 @@ def data_loader(FLAGS):
                     input_images = tf.identity(inputs)
                     target_images = tf.identity(targets)
 
+            with tf.name_scope('input_noise'):
+                # Check whether add Gaussian noise to target_images
+                if (FLAGS.input_noise is True) and (FLAGS.mode == 'train'):
+                    print('[Config] Use input noise')
+                    target_images = target_images + tf.random_normal(tf.shape(target_images), mean=0.0, stddev=FLAGS.input_noise_std)
+
             if FLAGS.task == 'SRGAN' or FLAGS.task == 'SRResnet':
                 input_images.set_shape([FLAGS.crop_size, FLAGS.crop_size, 3])
                 target_images.set_shape([FLAGS.crop_size*4, FLAGS.crop_size*4, 3])
@@ -426,7 +432,11 @@ def SRGAN(inputs, targets, FLAGS):
     # Calculating the discriminator loss
     with tf.variable_scope('discriminator_loss'):
         discrim_fake_loss = tf.log(1 - discrim_fake_output + FLAGS.EPS)
-        discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
+        if FLAGS.label_smoothing is True:
+            soft_label = tf.random_uniform(tf.shape(discrim_real_output), minval=FLAGS.label_smoothing_min, maxval=1.0)
+            discrim_real_loss = soft_label * tf.log(discrim_real_output + FLAGS.EPS) + (1 - soft_label) * tf.log(1 - discrim_real_output + FLAGS.EPS)
+        else:
+            discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
 
         discrim_loss = tf.reduce_mean(-(discrim_fake_loss + discrim_real_loss))
 

@@ -32,6 +32,8 @@ Flags.DEFINE_string('input_dir_HR', None, 'The directory of the high resolution 
 Flags.DEFINE_boolean('flip', True, 'Whether random flip data augmentation is applied')
 Flags.DEFINE_boolean('random_crop', True, 'Whether perform the random crop')
 Flags.DEFINE_integer('crop_size', 24, 'The crop size of the training image')
+Flags.DEFINE_boolean('input_noise', False, 'Whether add Gaussian noise to target images')
+Flags.DEFINE_float('input_noise_std', 0.002, 'Standard deviation of Gaussian input noise')
 Flags.DEFINE_integer('name_queue_capacity', 2048, 'The capacity of the filename queue (suggest large to ensure'
                                                   'enough random shuffle.')
 Flags.DEFINE_integer('image_queue_capacity', 2048, 'The capacity of the image queue (suggest large to ensure'
@@ -45,6 +47,9 @@ Flags.DEFINE_float('EPS', 1e-12, 'The eps added to prevent nan')
 Flags.DEFINE_float('ratio', 0.001, 'The ratio between content loss and adversarial loss')
 Flags.DEFINE_float('vgg_scaling', 0.0061, 'The scaling factor for the perceptual loss if using vgg perceptual loss')
 Flags.DEFINE_float('combined_mse_scaling', 1.0, 'The scaling factor for MSE loss if using combined perceptual loss')
+# The discriminator loss paramter
+Flags.DEFINE_boolean('label_smoothing', False, 'Whether use label smoothing in discriminator loss')
+Flags.DEFINE_float('label_smoothing_min', 0.7, 'Minimum soft label value in label smoothing for real images')
 # The training parameters
 Flags.DEFINE_float('learning_rate', 0.0001, 'The learning rate for the network')
 Flags.DEFINE_integer('decay_step', 500000, 'The steps needed to decay the learning rate')
