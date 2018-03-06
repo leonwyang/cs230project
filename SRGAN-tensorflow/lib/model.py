@@ -433,7 +433,7 @@ def SRGAN(inputs, targets, FLAGS):
     with tf.variable_scope('discriminator_loss'):
         discrim_fake_loss = tf.log(1 - discrim_fake_output + FLAGS.EPS)
         if FLAGS.label_smoothing is True:
-            soft_label = tf.random_uniform(tf.shape(discrim_real_output), minval=FLAGS.label_smoothing_min, maxval=1.0)
+            soft_label = FLAGS.label_smoothing_alpha
             discrim_real_loss = soft_label * tf.log(discrim_real_output + FLAGS.EPS) + (1 - soft_label) * tf.log(1 - discrim_real_output + FLAGS.EPS)
         else:
             discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
