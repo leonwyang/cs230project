@@ -8,7 +8,7 @@ import shutil
 from  evaluations import *
 import scipy.misc
 
-main_dir = "/home/ubuntu/cs230project/SRGAN-tensorflow/result/test_resnet_mse_vgg22_5/"
+main_dir = "/home/ubuntu/cs230project/SRGAN-tensorflow/result/test_srgan_mse_input_noise/"
 
 f_stats = open(join(main_dir , 'stats.txt'), 'w')
 evals = [0.,0.,0.,]
