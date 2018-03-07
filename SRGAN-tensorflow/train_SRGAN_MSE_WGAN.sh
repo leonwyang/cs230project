@@ -16,7 +16,7 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --name_queue_capacity 4096 \
     --image_queue_capacity 4096 \
     --WGAN True \
-    --ratio 0.001 \
+    --ratio 1.0 \
     --learning_rate 0.0001 \
     --decay_step 100000 \
     --decay_rate 0.1 \
