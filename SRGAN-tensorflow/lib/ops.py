@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+import tf.contrib.layers as layers
 import pdb
 import keras
 
@@ -74,6 +75,10 @@ def lrelu(inputs, alpha):
 def batchnorm(inputs, is_training):
     return slim.batch_norm(inputs, decay=0.9, epsilon=0.001, updates_collections=tf.GraphKeys.UPDATE_OPS,
                         scale=False, fused=True, is_training=is_training)
+
+
+def layernorm(inputs):
+    return layers.layer_norm(inputs)
 
 
 # Our dense layer

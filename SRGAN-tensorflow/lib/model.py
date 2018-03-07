@@ -284,10 +284,13 @@ def discriminator(dis_inputs, FLAGS=None):
         raise ValueError('No FLAGS is provided for generator')
 
     # Define the discriminator block
-    def discriminator_block(inputs, output_channel, kernel_size, stride, scope):
+    def discriminator_block(inputs, output_channel, kernel_size, stride, scope, FLAGS=None):
         with tf.variable_scope(scope):
             net = conv2(inputs, kernel_size, output_channel, stride, use_bias=False, scope='conv1')
-            net = batchnorm(net, FLAGS.is_training)
+            if FLAGS.WGAN is False:
+                net = batchnorm(net, FLAGS.is_training)
+            else:
+                net = layernorm(net)
             net = lrelu(net, 0.2)
 
         return net
@@ -301,25 +304,25 @@ def discriminator(dis_inputs, FLAGS=None):
 
             # The discriminator block part
             # block 1
-            net = discriminator_block(net, 64, 3, 2, 'disblock_1')
+            net = discriminator_block(net, 64, 3, 2, 'disblock_1', FLAGS=FLAGS)
 
             # block 2
-            net = discriminator_block(net, 128, 3, 1, 'disblock_2')
+            net = discriminator_block(net, 128, 3, 1, 'disblock_2', FLAGS=FLAGS)
 
             # block 3
-            net = discriminator_block(net, 128, 3, 2, 'disblock_3')
+            net = discriminator_block(net, 128, 3, 2, 'disblock_3', FLAGS=FLAGS)
 
             # block 4
-            net = discriminator_block(net, 256, 3, 1, 'disblock_4')
+            net = discriminator_block(net, 256, 3, 1, 'disblock_4', FLAGS=FLAGS)
 
             # block 5
-            net = discriminator_block(net, 256, 3, 2, 'disblock_5')
+            net = discriminator_block(net, 256, 3, 2, 'disblock_5', FLAGS=FLAGS)
 
             # block 6
-            net = discriminator_block(net, 512, 3, 1, 'disblock_6')
+            net = discriminator_block(net, 512, 3, 1, 'disblock_6', FLAGS=FLAGS)
 
             # block_7
-            net = discriminator_block(net, 512, 3, 2, 'disblock_7')
+            net = discriminator_block(net, 512, 3, 2, 'disblock_7', FLAGS=FLAGS)
 
             # The dense layer 1
             with tf.variable_scope('dense_layer_1'):
@@ -330,7 +333,8 @@ def discriminator(dis_inputs, FLAGS=None):
             # The dense layer 2
             with tf.variable_scope('dense_layer_2'):
                 net = denselayer(net, 1)
-                net = tf.nn.sigmoid(net)
+                if FLAGS.WGAN is False:
+                    net = tf.nn.sigmoid(net)
 
     return net
 
@@ -375,6 +379,14 @@ def SRGAN(inputs, targets, FLAGS):
     with tf.name_scope('real_discriminator'):
         with tf.variable_scope('discriminator', reuse=True):
             discrim_real_output = discriminator(targets, FLAGS=FLAGS)
+
+    # Build the inter discriminator
+    with tf.name_scope('inter_discriminator'):
+        with tf.variable_scope('discriminator', reuse=True):
+            if FLAGS.WGAN is True:
+                epsilon = tf.random_uniform(tf.shape(discrim_real_output), minval=0., maxval=1.)
+                inter = epsilon * targets + (1 - epsilon) * gen_output
+                discrim_inter_output = discriminator(inter, FLAGS=FLAGS)
 
     # Use the VGG54 feature
     if FLAGS.perceptual_mode == 'VGG54':
@@ -423,7 +435,10 @@ def SRGAN(inputs, targets, FLAGS):
                 content_loss = content_loss + FLAGS.combined_mse_scaling * tf.reduce_mean(tf.reduce_sum(tf.square(diff_mse), axis=[3]))
 
         with tf.variable_scope('adversarial_loss'):
-            adversarial_loss = tf.reduce_mean(-tf.log(discrim_fake_output + FLAGS.EPS))
+            if FLAGS.WGAN is False:
+                adversarial_loss = tf.reduce_mean(-tf.log(discrim_fake_output + FLAGS.EPS))
+            else:
+                adversarial_loss = tf.reduce_mean(-discrim_fake_output)
 
         gen_loss = content_loss + (FLAGS.ratio)*adversarial_loss
         print(adversarial_loss.get_shape())
@@ -431,14 +446,24 @@ def SRGAN(inputs, targets, FLAGS):
 
     # Calculating the discriminator loss
     with tf.variable_scope('discriminator_loss'):
-        discrim_fake_loss = tf.log(1 - discrim_fake_output + FLAGS.EPS)
-        if FLAGS.label_smoothing is True:
-            soft_label = FLAGS.label_smoothing_alpha
-            discrim_real_loss = soft_label * tf.log(discrim_real_output + FLAGS.EPS) + (1 - soft_label) * tf.log(1 - discrim_real_output + FLAGS.EPS)
-        else:
-            discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
+        if FLAGS.WGAN is False:
+            discrim_fake_loss = tf.log(1 - discrim_fake_output + FLAGS.EPS)
+            if FLAGS.label_smoothing is True:
+                soft_label = FLAGS.label_smoothing_alpha
+                discrim_real_loss = soft_label * tf.log(discrim_real_output + FLAGS.EPS) + (1 - soft_label) * tf.log(1 - discrim_real_output + FLAGS.EPS)
+            else:
+                discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
 
-        discrim_loss = tf.reduce_mean(-(discrim_fake_loss + discrim_real_loss))
+            discrim_loss = tf.reduce_mean(-(discrim_fake_loss + discrim_real_loss))
+        else:
+            discrim_fake_loss = discrim_fake_output
+            discrim_real_loss = -discrim_real_output
+            inter_grad = tf.gradients(discrim_inter_output, [inter])[0]
+            inter_grad_norm = tf.sqrt(tf.reduce_sum(tf.reduce_sum(tf.reduce_sum(inter_grad ** 2, axis=-1), axis=-1), axis=-1))
+            gradients_penalty = FLAGS.WGAN_lambda * ((inter_grad_norm - 1.) ** 2)
+            print('Gradients penalty shape:', gradients_penalty.get_shape())
+
+            discrim_loss = tf.reduce_mean(discrim_fake_loss + discrim_real_loss + gradients_penalty)
 
     # Define the learning rate and global step
     with tf.variable_scope('get_learning_rate_and_global_step'):
@@ -448,7 +473,10 @@ def SRGAN(inputs, targets, FLAGS):
 
     with tf.variable_scope('dicriminator_train'):
         discrim_tvars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
-        discrim_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=FLAGS.beta)
+        if FLAGS.WGAN is False:
+            discrim_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=FLAGS.beta)
+        else:
+            discrim_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=FLAGS.WGAN_beta1, beta2=FLAGS.WGAN_beta2)
         discrim_grads_and_vars = discrim_optimizer.compute_gradients(discrim_loss, discrim_tvars)
         discrim_train = discrim_optimizer.apply_gradients(discrim_grads_and_vars)
 
@@ -456,7 +484,10 @@ def SRGAN(inputs, targets, FLAGS):
         # Need to wait discriminator to perform train step
         with tf.control_dependencies([discrim_train]+ tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
             gen_tvars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='generator')
-            gen_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=FLAGS.beta)
+            if FLAGS.WGAN is False:
+                gen_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=FLAGS.beta)
+            else:
+                gen_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=FLAGS.WGAN_beta1, beta2=FLAGS.WGAN_beta2)
             gen_grads_and_vars = gen_optimizer.compute_gradients(gen_loss, gen_tvars)
             gen_train = gen_optimizer.apply_gradients(gen_grads_and_vars)
 
@@ -473,6 +504,7 @@ def SRGAN(inputs, targets, FLAGS):
         content_loss = exp_averager.average(content_loss),
         gen_grads_and_vars = gen_grads_and_vars,
         gen_output = gen_output,
+        discrim_train = discrim_train,
         train = tf.group(update_loss, incr_global_step, gen_train),
         global_step = global_step,
         learning_rate = learning_rate

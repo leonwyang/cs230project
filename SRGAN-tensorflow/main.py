@@ -56,6 +56,11 @@ Flags.DEFINE_integer('decay_step', 500000, 'The steps needed to decay the learni
 Flags.DEFINE_float('decay_rate', 0.1, 'The decay rate of each decay step')
 Flags.DEFINE_boolean('stair', False, 'Whether perform staircase decay. True => decay in discrete interval.')
 Flags.DEFINE_float('beta', 0.9, 'The beta1 parameter for the Adam optimizer')
+Flags.DEFINE_boolean('WGAN', False, 'Training with WGAN or not')
+Flags.DEFINE_float('WGAN_beta1', 0.5, 'The beta1 parameter for the Adam optimizer if WGAN')
+Flags.DEFINE_float('WGAN_beta2', 0.9, 'The beta2 parameter for the Adam optimizer if WGAN')
+Flags.DEFINE_float('WGAN_lambda', 10.0, 'The lambda parameter for gradient penalty if WGAN')
+Flags.DEFINE_integer('WGAN_n_D', 5, 'The number of discriminator trainings between two generator trainings if WGAN')
 Flags.DEFINE_integer('max_epoch', None, 'The max epoch for the training')
 Flags.DEFINE_integer('max_iter', 1000000, 'The max iteration of the training')
 Flags.DEFINE_integer('display_freq', 20, 'The diplay frequency of the training process')
@@ -340,6 +345,11 @@ elif FLAGS.mode == 'train':
         print('Optimization starts!!!')
         start = time.time()
         for step in range(max_iter):
+            if FLAGS.WGAN is True:
+                for _ in range(FLAGS.WGAN_n_D - 1):
+                    fetches = {"discrim_train": Net.discrim_train}
+                    results = sess.run(fetches)
+
             fetches = {
                 "train": Net.train,
                 "global_step": sv.global_step,
