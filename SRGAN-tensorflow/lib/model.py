@@ -360,7 +360,7 @@ def VGG19_slim(input, type, reuse, scope):
 # Define the whole network architecture
 def SRGAN(inputs, targets, FLAGS):
     # Define the container of the parameter
-    Network = collections.namedtuple('Network', 'discrim_real_output, discrim_fake_output, discrim_loss, \
+    Network = collections.namedtuple('Network', 'discrim_real_output, discrim_fake_output, discrim_loss, discrim_train, \
         discrim_grads_and_vars, adversarial_loss, content_loss, gen_grads_and_vars, gen_output, train, global_step, \
         learning_rate')
 
@@ -384,7 +384,8 @@ def SRGAN(inputs, targets, FLAGS):
     with tf.name_scope('inter_discriminator'):
         with tf.variable_scope('discriminator', reuse=True):
             if FLAGS.WGAN is True:
-                epsilon = tf.random_uniform(tf.shape(discrim_real_output), minval=0., maxval=1.)
+                epsilon_dims = tf.stack([tf.shape(targets)[0], 1, 1, 1])
+                epsilon = tf.random_uniform(epsilon_dims, minval=0., maxval=1.)
                 inter = epsilon * targets + (1 - epsilon) * gen_output
                 discrim_inter_output = discriminator(inter, FLAGS=FLAGS)
 

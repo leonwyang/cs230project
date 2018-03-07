@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-import tf.contrib.layers as layers
+import tensorflow.contrib.layers as layers
 import pdb
 import keras
 
