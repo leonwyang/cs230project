@@ -362,7 +362,7 @@ def SRGAN(inputs, targets, FLAGS):
     # Define the container of the parameter
     Network = collections.namedtuple('Network', 'discrim_real_output, discrim_fake_output, discrim_loss, discrim_train, \
         discrim_grads_and_vars, adversarial_loss, content_loss, gen_grads_and_vars, gen_output, train, global_step, \
-        learning_rate')
+        learning_rate, ori_discrim_loss, gradients_penalty')
 
     # Build the generator part
     with tf.variable_scope('generator'):
@@ -456,6 +456,8 @@ def SRGAN(inputs, targets, FLAGS):
                 discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
 
             discrim_loss = tf.reduce_mean(-(discrim_fake_loss + discrim_real_loss))
+            ori_discrim_loss = discrim_loss
+            gradients_penalty = tf.zeros_like(ori_discrim_loss)
         else:
             discrim_fake_loss = discrim_fake_output
             discrim_real_loss = -discrim_real_output
@@ -464,7 +466,9 @@ def SRGAN(inputs, targets, FLAGS):
             gradients_penalty = FLAGS.WGAN_lambda * ((inter_grad_norm - 1.) ** 2)
             print('Gradients penalty shape:', gradients_penalty.get_shape())
 
-            discrim_loss = tf.reduce_mean(discrim_fake_loss + discrim_real_loss + gradients_penalty)
+            ori_discrim_loss = tf.reduce_mean(discrim_fake_loss + discrim_real_loss)
+            gradients_penalty = tf.reduce_mean(gradients_penalty)
+            discrim_loss = ori_discrim_loss + gradients_penalty
 
     # Define the learning rate and global step
     with tf.variable_scope('get_learning_rate_and_global_step'):
@@ -508,7 +512,9 @@ def SRGAN(inputs, targets, FLAGS):
         discrim_train = discrim_train,
         train = tf.group(update_loss, incr_global_step, gen_train),
         global_step = global_step,
-        learning_rate = learning_rate
+        learning_rate = learning_rate,
+        ori_discrim_loss = ori_discrim_loss,
+        gradients_penalty = gradients_penalty
     )
 
 

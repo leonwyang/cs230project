@@ -281,6 +281,8 @@ elif FLAGS.mode == 'train':
         tf.summary.scalar('generator_loss', Net.content_loss + FLAGS.ratio*Net.adversarial_loss)
         tf.summary.scalar('PSNR', psnr)
         tf.summary.scalar('learning_rate', Net.learning_rate)
+        tf.summary.scalar('ori_discrim_loss', Net.ori_discrim_loss)
+        tf.summary.scalar('gradients_penalty', Net.gradients_penalty)
     elif FLAGS.task == 'SRResnet':
         tf.summary.scalar('content_loss', Net.content_loss)
         tf.summary.scalar('generator_loss', Net.content_loss)
@@ -363,6 +365,8 @@ elif FLAGS.mode == 'train':
                     fetches["PSNR"] = psnr
                     fetches["learning_rate"] = Net.learning_rate
                     fetches["global_step"] = Net.global_step
+                    fetches["ori_discrim_loss"] = Net.ori_discrim_loss
+                    fetches["gradients_penalty"] = Net.gradients_penalty
                 elif FLAGS.task == 'SRResnet':
                     fetches["content_loss"] = Net.content_loss
                     fetches["PSNR"] = psnr
@@ -388,6 +392,8 @@ elif FLAGS.mode == 'train':
                     print("global_step", results["global_step"])
                     print("PSNR", results["PSNR"])
                     print("discrim_loss", results["discrim_loss"])
+                    print("ori_discrim_loss", results["ori_discrim_loss"])
+                    print("gradients_penalty", results["gradients_penalty"])
                     print("adversarial_loss", results["adversarial_loss"])
                     print("content_loss", results["content_loss"])
                     print("learning_rate", results['learning_rate'])
