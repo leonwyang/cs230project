@@ -498,7 +498,7 @@ def SRGAN(inputs, targets, FLAGS):
 
     #[ToDo] If we do not use moving average on loss??
     exp_averager = tf.train.ExponentialMovingAverage(decay=0.99)
-    update_loss = exp_averager.apply([discrim_loss, adversarial_loss, content_loss])
+    update_loss = exp_averager.apply([discrim_loss, adversarial_loss, content_loss, ori_discrim_loss, gradients_penalty])
 
     return Network(
         discrim_real_output = discrim_real_output,
@@ -513,8 +513,8 @@ def SRGAN(inputs, targets, FLAGS):
         train = tf.group(update_loss, incr_global_step, gen_train),
         global_step = global_step,
         learning_rate = learning_rate,
-        ori_discrim_loss = ori_discrim_loss,
-        gradients_penalty = gradients_penalty
+        ori_discrim_loss = exp_averager.average(ori_discrim_loss),
+        gradients_penalty = exp_averager.average(gradients_penalty)
     )
 
 
