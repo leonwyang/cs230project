@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python main.py \
-    --output_dir ./experiment_SRGAN_VGG54_WGAN/ \
-    --summary_dir ./experiment_SRGAN_VGG54_WGAN/log/ \
+    --output_dir ./experiment_SRGAN_VGG54_WGAN_init/ \
+    --summary_dir ./experiment_SRGAN_VGG54_WGAN_init/log/ \
     --mode train \
     --is_training True \
     --task SRGAN \
