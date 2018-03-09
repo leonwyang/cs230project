@@ -29,5 +29,5 @@ CUDA_VISIBLE_DEVICES=0 python main.py \
     --checkpoint ./experiment_SRGAN_VGG54/model-100000 \
     --display_freq 5 \
     --summary_freq 25 \
-    --save_freq 2500
+    --save_freq 5000
 
