@@ -456,7 +456,7 @@ def SRGAN(inputs, targets, FLAGS):
                 discrim_real_loss = tf.log(discrim_real_output + FLAGS.EPS)
 
             discrim_loss = tf.reduce_mean(-(discrim_fake_loss + discrim_real_loss))
-            ori_discrim_loss = discrim_loss
+            ori_discrim_loss = tf.identity(discrim_loss)
             gradients_penalty = tf.zeros_like(ori_discrim_loss)
         else:
             discrim_fake_loss = discrim_fake_output
