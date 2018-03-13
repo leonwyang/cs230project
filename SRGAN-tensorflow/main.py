@@ -47,7 +47,7 @@ Flags.DEFINE_float('EPS', 1e-12, 'The eps added to prevent nan')
 Flags.DEFINE_float('ratio', 0.001, 'The ratio between content loss and adversarial loss')
 Flags.DEFINE_float('vgg_scaling', 0.0061, 'The scaling factor for the perceptual loss if using vgg perceptual loss')
 Flags.DEFINE_float('combined_mse_scaling', 1.0, 'The scaling factor for MSE loss if using combined perceptual loss')
-Flags.DEFINE_float('combined_vgg22_scaling', 0.001, 'The scaling factor for VGG22 loss if using combined perceptual loss')
+Flags.DEFINE_float('combined_vgg22_scaling', 0.00038, 'The scaling factor for VGG22 loss if using combined perceptual loss')
 # The discriminator loss paramter
 Flags.DEFINE_boolean('label_smoothing', False, 'Whether use label smoothing in discriminator loss')
 Flags.DEFINE_float('label_smoothing_alpha', 0.92, 'Soft label value in label smoothing for real images')
