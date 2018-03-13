@@ -63,7 +63,7 @@ Flags.DEFINE_float('WGAN_beta2', 0.9, 'The beta2 parameter for the Adam optimize
 Flags.DEFINE_float('WGAN_lambda', 10.0, 'The lambda parameter for gradient penalty if WGAN')
 Flags.DEFINE_integer('WGAN_n_D', 3, 'The number of discriminator trainings between two generator trainings if WGAN')
 Flags.DEFINE_boolean('weights_penalty', False, 'Training loss using weights penalty or not')
-Flags.DEFINE_float('weights_penalty_lambda', 0.1, 'The lambda parameter for weights penalty')
+Flags.DEFINE_float('weights_penalty_lambda', 0.05, 'The lambda parameter for weights penalty')
 Flags.DEFINE_integer('max_epoch', None, 'The max epoch for the training')
 Flags.DEFINE_integer('max_iter', 1000000, 'The max iteration of the training')
 Flags.DEFINE_integer('display_freq', 20, 'The diplay frequency of the training process')
