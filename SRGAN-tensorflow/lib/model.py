@@ -408,12 +408,23 @@ def SRGAN(inputs, targets, FLAGS):
         extracted_feature_gen = gen_output
         extracted_feature_target = targets
 
-    # Use MSE-VGG combined loss
+    # Use MSE-VGG combined loss ('MSE_VGG54' or 'MSE_VGG22')
     elif FLAGS.perceptual_mode.startswith('MSE_VGG'):
         with tf.name_scope('vgg19_1') as scope:
             extracted_feature_gen = VGG19_slim(gen_output, FLAGS.perceptual_mode[4:], reuse=False, scope=scope)
         with tf.name_scope('vgg19_2') as scope:
             extracted_feature_target = VGG19_slim(targets, FLAGS.perceptual_mode[4:], reuse=True, scope=scope)
+        extracted_feature_gen_mse = gen_output
+        extracted_feature_target_mse = targets
+
+    # Use MSE-VGG22-VGG54 combined loss
+    elif FLAGS.perceptual_mode == 'combined':
+        with tf.name_scope('vgg19_1') as scope:
+            extracted_feature_gen = VGG19_slim(gen_output, 'VGG54', reuse=False, scope=scope)
+            extracted_feature_gen_vgg22 = VGG19_slim(gen_output, 'VGG22', reuse=True, scope=scope)
+        with tf.name_scope('vgg19_2') as scope:
+            extracted_feature_target = VGG19_slim(targets, 'VGG54', reuse=True, scope=scope)
+            extracted_feature_target_vgg22 = VGG19_slim(targets, 'VGG22', reuse=True, scope=scope)
         extracted_feature_gen_mse = gen_output
         extracted_feature_target_mse = targets
 
@@ -431,9 +442,13 @@ def SRGAN(inputs, targets, FLAGS):
             else:
                 content_loss = FLAGS.vgg_scaling*tf.reduce_mean(tf.reduce_sum(tf.square(diff), axis=[3]))
 
-            if FLAGS.perceptual_mode.startswith('MSE_VGG'):
+            if FLAGS.perceptual_mode.startswith('MSE_VGG') or FLAGS.perceptual_mode == 'combined':
                 diff_mse = extracted_feature_gen_mse - extracted_feature_target_mse
                 content_loss = content_loss + FLAGS.combined_mse_scaling * tf.reduce_mean(tf.reduce_sum(tf.square(diff_mse), axis=[3]))
+
+            if FLAGS.perceptual_mode == 'combined':
+                diff_vgg22 = extracted_feature_gen_vgg22 - extracted_feature_target_vgg22
+                content_loss = content_loss + FLAGS.combined_vgg22_scaling * tf.reduce_mean(tf.reduce_sum(tf.square(diff_vgg22), axis=[3]))
 
         with tf.variable_scope('adversarial_loss'):
             if FLAGS.WGAN is False:
@@ -470,6 +485,13 @@ def SRGAN(inputs, targets, FLAGS):
             gradients_penalty = tf.reduce_mean(gradients_penalty)
             discrim_loss = ori_discrim_loss + gradients_penalty
 
+        weights_penalty = tf.zeros_like(discrim_loss)
+        if FLAGS.weights_penalty is True:
+            discrim_tvars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
+            weights_penalty = FLAGS.weights_penalty_lambda * tf.reduce_sum(tf.pack([tf.nn.l2_loss(i) for i in discrim_tvars]))
+
+        discrim_loss = discrim_loss + weights_penalty
+
     # Define the learning rate and global step
     with tf.variable_scope('get_learning_rate_and_global_step'):
         global_step = tf.contrib.framework.get_or_create_global_step()
@@ -498,7 +520,7 @@ def SRGAN(inputs, targets, FLAGS):
 
     #[ToDo] If we do not use moving average on loss??
     exp_averager = tf.train.ExponentialMovingAverage(decay=0.99)
-    update_loss = exp_averager.apply([discrim_loss, adversarial_loss, content_loss, ori_discrim_loss, gradients_penalty])
+    update_loss = exp_averager.apply([discrim_loss, adversarial_loss, content_loss, ori_discrim_loss, gradients_penalty, weights_penalty])
 
     return Network(
         discrim_real_output = discrim_real_output,
@@ -514,7 +536,8 @@ def SRGAN(inputs, targets, FLAGS):
         global_step = global_step,
         learning_rate = learning_rate,
         ori_discrim_loss = exp_averager.average(ori_discrim_loss),
-        gradients_penalty = exp_averager.average(gradients_penalty)
+        gradients_penalty = exp_averager.average(gradients_penalty),
+        weights_penalty = exp_averager.average(weights_penalty)
     )
 
 

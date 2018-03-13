@@ -47,6 +47,7 @@ Flags.DEFINE_float('EPS', 1e-12, 'The eps added to prevent nan')
 Flags.DEFINE_float('ratio', 0.001, 'The ratio between content loss and adversarial loss')
 Flags.DEFINE_float('vgg_scaling', 0.0061, 'The scaling factor for the perceptual loss if using vgg perceptual loss')
 Flags.DEFINE_float('combined_mse_scaling', 1.0, 'The scaling factor for MSE loss if using combined perceptual loss')
+Flags.DEFINE_float('combined_vgg22_scaling', 0.1, 'The scaling factor for VGG22 loss if using combined perceptual loss')
 # The discriminator loss paramter
 Flags.DEFINE_boolean('label_smoothing', False, 'Whether use label smoothing in discriminator loss')
 Flags.DEFINE_float('label_smoothing_alpha', 0.92, 'Soft label value in label smoothing for real images')
@@ -61,6 +62,8 @@ Flags.DEFINE_float('WGAN_beta1', 0.5, 'The beta1 parameter for the Adam optimize
 Flags.DEFINE_float('WGAN_beta2', 0.9, 'The beta2 parameter for the Adam optimizer if WGAN')
 Flags.DEFINE_float('WGAN_lambda', 10.0, 'The lambda parameter for gradient penalty if WGAN')
 Flags.DEFINE_integer('WGAN_n_D', 3, 'The number of discriminator trainings between two generator trainings if WGAN')
+Flags.DEFINE_boolean('weights_penalty', False, 'Training loss using weights penalty or not')
+Flags.DEFINE_float('weights_penalty_lambda', 10.0, 'The lambda parameter for weights penalty')
 Flags.DEFINE_integer('max_epoch', None, 'The max epoch for the training')
 Flags.DEFINE_integer('max_iter', 1000000, 'The max iteration of the training')
 Flags.DEFINE_integer('display_freq', 20, 'The diplay frequency of the training process')
@@ -283,6 +286,7 @@ elif FLAGS.mode == 'train':
         tf.summary.scalar('learning_rate', Net.learning_rate)
         tf.summary.scalar('ori_discrim_loss', Net.ori_discrim_loss)
         tf.summary.scalar('gradients_penalty', Net.gradients_penalty)
+        tf.summary.scalar('weights_penalty', Net.weights_penalty)
     elif FLAGS.task == 'SRResnet':
         tf.summary.scalar('content_loss', Net.content_loss)
         tf.summary.scalar('generator_loss', Net.content_loss)
@@ -367,6 +371,7 @@ elif FLAGS.mode == 'train':
                     fetches["global_step"] = Net.global_step
                     fetches["ori_discrim_loss"] = Net.ori_discrim_loss
                     fetches["gradients_penalty"] = Net.gradients_penalty
+                    fetches["weights_penalty"] = Net.weights_penalty
                 elif FLAGS.task == 'SRResnet':
                     fetches["content_loss"] = Net.content_loss
                     fetches["PSNR"] = psnr
@@ -394,6 +399,7 @@ elif FLAGS.mode == 'train':
                     print("discrim_loss", results["discrim_loss"])
                     print("ori_discrim_loss", results["ori_discrim_loss"])
                     print("gradients_penalty", results["gradients_penalty"])
+                    print("weights_penalty", results["weights_penalty"])
                     print("adversarial_loss", results["adversarial_loss"])
                     print("content_loss", results["content_loss"])
                     print("learning_rate", results['learning_rate'])
