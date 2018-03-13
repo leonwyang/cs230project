@@ -362,7 +362,7 @@ def SRGAN(inputs, targets, FLAGS):
     # Define the container of the parameter
     Network = collections.namedtuple('Network', 'discrim_real_output, discrim_fake_output, discrim_loss, discrim_train, \
         discrim_grads_and_vars, adversarial_loss, content_loss, gen_grads_and_vars, gen_output, train, global_step, \
-        learning_rate, ori_discrim_loss, gradients_penalty')
+        learning_rate, ori_discrim_loss, gradients_penalty, weights_penalty')
 
     # Build the generator part
     with tf.variable_scope('generator'):
@@ -488,7 +488,7 @@ def SRGAN(inputs, targets, FLAGS):
         weights_penalty = tf.zeros_like(discrim_loss)
         if FLAGS.weights_penalty is True:
             discrim_tvars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='discriminator')
-            weights_penalty = FLAGS.weights_penalty_lambda * tf.reduce_sum(tf.pack([tf.nn.l2_loss(i) for i in discrim_tvars]))
+            weights_penalty = FLAGS.weights_penalty_lambda * tf.reduce_sum(tf.stack([tf.nn.l2_loss(i) for i in discrim_tvars]))
 
         discrim_loss = discrim_loss + weights_penalty
 
